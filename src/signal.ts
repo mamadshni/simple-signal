@@ -1,10 +1,6 @@
-export function signal<T>(initialValue: T, elemRef: HTMLElement | null = null) {
-    let host = elemRef;
+export function signal<T>(initialValue: T) {
     let value = initialValue;
-
-    function setHost(elemRef: HTMLElement) {
-        host = elemRef;
-    }
+    let subscribers: ((currentVal: T) => unknown)[] = [];
 
     function get() {
         return value;
@@ -23,12 +19,16 @@ export function signal<T>(initialValue: T, elemRef: HTMLElement | null = null) {
     }
 
     function updateView() {
-        if (host) {
-            host.textContent = `${value}`;
+        if (subscribers.length > 0) {
+            subscribers.forEach(subscriber => subscriber(value));
         }
+    }
+
+    function subscribe(fn: (currentVal: T) => unknown) {
+        subscribers.push(fn)
     }
 
     updateView();
 
-    return { get, set, update, setHost };
+    return { get, set, update, subscribe };
 }
